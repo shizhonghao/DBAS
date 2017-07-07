@@ -54,7 +54,7 @@ void db_sys::on_login_btn_clicked()
                                    "DATABASE=%2;"
                                    "UID=%3;"
                                    "PWD=%4;").arg("127.0.0.1")
-                           .arg("TD_LTE")
+                           .arg("DBSA")
                            .arg(id)
                            .arg(pwd));
     if(!db.open())
