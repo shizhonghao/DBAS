@@ -11,6 +11,7 @@ db_sys::db_sys(QWidget *parent) :
     ui(new Ui::db_sys)
 {
     ui->setupUi(this);
+    ui->pwd->setEchoMode(QLineEdit::Password);
 }
 
 db_sys::~db_sys()
@@ -65,22 +66,18 @@ void db_sys::on_login_btn_clicked()
     else
     {
         ui->login->hide();
-        tab_data = new tab_data_IO(this);
+        tab_data = new tab_data_IO(this->db,this);
         tab_data->setGeometry(0,40,800,600);
-        tab_query = new tab_info_query(this);
+        tab_query = new tab_info_query(this->db,this);
         tab_query->setGeometry(0,40,800,600);
-        tab_analysis = new tab_interfere_analysis(this);
+        tab_analysis = new tab_interfere_analysis(this->db,this);
         tab_analysis->setGeometry(0,40,800,600);
 
         tab_query->hide();
         tab_analysis->hide();
+        tab_data->show();
         ui->tabWidget->setCurrentIndex(0);
         qDebug()<<"database open success!";
     }
-    QSqlQuery query(db);
-    query.exec("select * from dbo.tbCell");
-    while(query.next())
-    {
-        qDebug()<<query.value(1).toString();
-    }
+
 }

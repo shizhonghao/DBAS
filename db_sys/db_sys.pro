@@ -15,7 +15,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         db_sys.cpp \
-    db_models.cpp \
     tab_data_io.cpp \
     tab_interfere_analysis.cpp \
     tab_info_query.cpp
