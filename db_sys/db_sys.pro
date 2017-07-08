@@ -24,13 +24,15 @@ SOURCES += main.cpp\
         db_sys.cpp \
     tab_data_io.cpp \
     tab_interfere_analysis.cpp \
-    tab_info_query.cpp
+    tab_info_query.cpp \
+    act_data_io.cpp
 
 HEADERS  += db_sys.h \
     tab_data_io.h \
     tab_interfere_analysis.h \
     tab_info_query.h \
-    inputbuffer.h
+    inputbuffer.h \
+    act_data_io.h
 
 FORMS    += db_sys.ui \
     tab_data_io.ui \
