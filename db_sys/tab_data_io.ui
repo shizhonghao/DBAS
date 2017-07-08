@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>270</x>
-     <y>200</y>
-     <width>211</width>
-     <height>101</height>
+     <y>180</y>
+     <width>421</width>
+     <height>121</height>
     </rect>
    </property>
    <property name="text">
@@ -49,7 +49,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>导入 tbMROData</string>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_3">
@@ -62,7 +62,20 @@
     </rect>
    </property>
    <property name="text">
-    <string>PushButton</string>
+    <string>导入 tbKPI</string>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>310</y>
+     <width>261</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>24</number>
    </property>
   </widget>
  </widget>
