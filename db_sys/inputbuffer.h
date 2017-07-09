@@ -184,3 +184,131 @@ private:
     int LteNcEarfcn,LteNcPci;
 };
 
+class tbPRBUnit:public tbUnit{
+public:
+
+    tbPRBUnit(QVariantList allEnvDataList_i,bool &ok){
+        if(allEnvDataList_i.length()!=105)//列长于表不符，为错表
+        {
+            ok = false;
+            return;
+        }
+        this->DataList = allEnvDataList_i;
+        bool test;
+        this->StartTime = allEnvDataList_i[0].toString();
+        ok &= isNotNull(this->StartTime);
+        this->cycle = allEnvDataList_i[1].toString().toInt(&test);
+        ok&=test;
+        //qDebug()<<"test3.2 ="<<ok;
+        this->eNodeBName = allEnvDataList_i[2].toString();
+        ok &= isNotNull(this->eNodeBName);
+        //qDebug()<<"test1 ="<<ok;
+        this->Sector = allEnvDataList_i[3].toString();
+        ok &= isNotNull(this->Sector);
+        //qDebug()<<"test2.1 ="<<ok;
+        this->SECTOR_NAME = allEnvDataList_i[4].toString();
+        ok &= isNotNull(this->SECTOR_NAME);
+        //qDebug()<<"test2.3 ="<<ok;
+
+        for(int i=0;i<100;i++){
+            this->PRB[i] = allEnvDataList_i[i+5].toString().toInt(&test);
+            ok&=test;
+        }
+    }
+
+private:
+    QString StartTime;
+    int cycle;
+    QString eNodeBName,Sector,SECTOR_NAME;
+    int PRB[100];
+};
+
+class tbKPIUnit:public tbUnit{
+public:
+
+    tbKPIUnit(QVariantList allEnvDataList_i,bool &ok){
+        if(allEnvDataList_i.length()!=42)//列长于表不符，为错表
+        {
+            ok = false;
+            return;
+        }
+        this->DataList = allEnvDataList_i;
+        bool test;
+        this->StartTime = allEnvDataList_i[0].toString();
+        ok &= isNotNull(this->StartTime);
+        this->cycle = allEnvDataList_i[1].toString().toInt(&test);
+        ok&=test;
+        //qDebug()<<"test3.2 ="<<ok;
+        this->eNodeBName = allEnvDataList_i[2].toString();
+        ok &= isNotNull(this->eNodeBName);
+        //qDebug()<<"test1 ="<<ok;
+        this->Sector = allEnvDataList_i[3].toString();
+        ok &= isNotNull(this->Sector);
+        //qDebug()<<"test2.1 ="<<ok;
+        this->SECTOR_NAME = allEnvDataList_i[4].toString();
+        ok &= isNotNull(this->SECTOR_NAME);
+        //qDebug()<<"test2.3 ="<<ok;
+
+        int is_float[11]={7,10,13,14,18,27,28,29,30,31,35};
+        int j=0;
+        for(int i=0;i<37;i++){
+            if(QString::compare("NIL",allEnvDataList_i[i+5].toString())==0){
+                continue;
+            }
+            if(i==is_float[j])//浮点数
+            {
+                allEnvDataList_i[i+5].toString().toFloat(&test);
+                ok&= test;
+                j++;
+            }
+            else{//整数
+                allEnvDataList_i[i+5].toString().toInt(&test);
+                ok&=test;
+            }
+        }
+    }
+
+private:
+    QString StartTime;
+    int cycle;
+    QString eNodeBName;
+    QString Sector;
+    QString SECTOR_NAME;
+    int RPCreq;
+    int RPCreqInc;
+    float qf;
+    int EARBSuc;
+    int EARBTry;
+    float EARBSucRate;
+    int eNode_ERABRelease;
+    int Sector_ERABRelease;
+    float ERABMiss;
+    float ay;
+    int eNodeB_UEConRelease;
+    int UEConRelease;
+    int UEConSuc;
+    float Miss;
+    int eNodeBSuc1;
+    int eNodeBTry1;
+    int eNodeBSuc2;
+    int eNodeBTry2;
+    int eNodeBSuc3;
+    int eNodeBTry3;
+    int eNodeBSuc4;
+    int eNodeBTry4;
+    float eNBSucRate1;
+    float eNBSucRate2;
+    float syncZsp;
+    float asyncZsp;
+    float switchRate;
+    int PDCPUpdT;
+    int PDCPDownT;
+    int RCreq;
+    float RRCrate;
+    int reBuildeNodeSuc1;
+    int reBuildeNodeSuc2;
+    int reBuildeNodeSuc3;
+    int reBuildeNodeSuc4;
+    int eNBSuc;
+    int eNBTry;
+};

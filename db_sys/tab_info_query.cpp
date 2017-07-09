@@ -14,7 +14,7 @@ tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
     mission->addItem(QWidget::tr("小区配置信息查询"));
     mission->addItem(QWidget::tr("基站eNodeB信息查询"));
     mission->addItem(QWidget::tr("KPI指标信息查询"));
-    mission->addItem(QWidget::tr("PRB信息统计与查询"));
+    mission->addItem(QWidget::tr("PRB信息统计&查询"));
 
     //小区名称选择
     ComSectorID = new QComboBox(this);
