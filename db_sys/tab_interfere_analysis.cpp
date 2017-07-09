@@ -68,7 +68,7 @@ tab_interfere_analysis::tab_interfere_analysis(QSqlDatabase db,QWidget *parent) 
 {
     ui->setupUi(this);
     this->db = db;
-
+    ui->progressBar->hide();
     /*
     QSqlQuery query(db);
     query.exec("select * from dbo.tbCell");
@@ -87,6 +87,7 @@ tab_interfere_analysis::~tab_interfere_analysis()
 void tab_interfere_analysis::on_C2I_file_clicked() //设定tbC2Inew文件保存路径
 {
     QFileDialog *file = new QFileDialog(this);
+    file->setFileMode(QFileDialog::Directory);
     file->setWindowTitle(tr("Open Image"));
     file->setDirectory(".");
     //file->setFilter(tr("Image Files(*.jpg *.png)"));
@@ -102,6 +103,7 @@ void tab_interfere_analysis::on_C2I_file_clicked() //设定tbC2Inew文件保存�
 void tab_interfere_analysis::on_triple_file_clicked() //设定tbC2I3文件保存路径
 {
     QFileDialog *file = new QFileDialog(this);
+    file->setFileMode(QFileDialog::Directory);
     file->setWindowTitle(tr("Open Image"));
     file->setDirectory(".");
     //file->setFilter(tr("Image Files(*.jpg *.png)"));
@@ -114,7 +116,7 @@ void tab_interfere_analysis::on_triple_file_clicked() //设定tbC2I3文件保存
     }
 }
 
-double prb(double x,double mean,double std)
+double prb(double x,double mean,double std) //计算均值为mean，方差为std时小于x的概率
 {
     if(std==0)
     {
@@ -123,7 +125,13 @@ double prb(double x,double mean,double std)
     return (1 + erf((x - mean)/std/sqrt(2)))/2.0;
 }
 
-void tab_interfere_analysis::on_C2I_clicked() //
+void add_gird(QAxObject *worksheet,int i,int j,auto val)
+{
+    QAxObject *pRange = worksheet->querySubObject("Cells(int,int)", i, j);
+    pRange->dynamicCall("Value", val);
+}
+
+void tab_interfere_analysis::on_C2I_clicked() //计算C2Inew并储存到选择的保存路径
 {
     QString path = ui->C2I_path->text();
     if(path.isEmpty())
@@ -131,6 +139,9 @@ void tab_interfere_analysis::on_C2I_clicked() //
         QMessageBox::information(NULL, tr("Path"), tr("You need to select a file first."));
         //return;
     }
+    path += "/tbC2Inew.xlsx";
+    ui->progressBar->show();
+    ui->progressBar->setValue(0);
 
     vector<C2I> v;
     QSqlQuery query(db);
@@ -150,7 +161,7 @@ void tab_interfere_analysis::on_C2I_clicked() //
         double std = v[i].std;
         v[i].PrbC2I9 = prb(9.0,mean,std);
         v[i].PrbABS6 = prb(6.0,mean,std)-prb(-6.0000000000001,mean,std);
-        qDebug() << v[i].SCell << v[i].NCell << v[i].C2I_mean << v[i].std << v[i].PrbC2I9 << v[i].PrbABS6;
+        //qDebug() << v[i].SCell << v[i].NCell << v[i].C2I_mean << v[i].std << v[i].PrbC2I9 << v[i].PrbABS6;
         //QString insert = "insert into dbo.tbC2Inew values()";
         query.exec(QString("insert into dbo.tbC2Inew values('%1','%2',%3,%4,%5,%6)")
                    .arg(v[i].SCell)
@@ -160,9 +171,50 @@ void tab_interfere_analysis::on_C2I_clicked() //
                    .arg(v[i].PrbC2I9)
                    .arg(v[i].PrbABS6));
     }
+
+    if(!path.isEmpty())
+    {
+        qDebug() << path;
+        ui->progressBar->setRange(0,v.size());
+        QAxObject *excel = new QAxObject(this);
+        excel->setControl("Excel.Application");//连接Excel控件
+        excel->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
+        excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        qDebug() << "settings";
+        QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+        workbooks->dynamicCall("Add");//新建一个工作簿
+        QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
+        QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
+        QAxObject *worksheet = worksheets->querySubObject("Item(int)",1);//获取工作表集合的工作表1，即sheet1
+
+        add_gird(worksheet,1,1,"SCell");
+        add_gird(worksheet,1,2,"NCell");
+        add_gird(worksheet,1,3,"C2I_mean");
+        add_gird(worksheet,1,4,"std");
+        add_gird(worksheet,1,5,"PrbC2I9");
+        add_gird(worksheet,1,6,"PrbABS6");
+        for(int i=0;i<v.size();i++)
+        {
+            add_gird(worksheet,i+2,1,v[i].SCell);
+            add_gird(worksheet,i+2,2,v[i].NCell);
+            add_gird(worksheet,i+2,3,v[i].C2I_mean);
+            add_gird(worksheet,i+2,4,v[i].std);
+            add_gird(worksheet,i+2,5,v[i].PrbC2I9);
+            add_gird(worksheet,i+2,6,v[i].PrbABS6);
+            ui->progressBar->setValue(i+1);
+        }
+        qDebug() << "wrote";
+
+        workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(path));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+        workbook->dynamicCall("Close()");//关闭工作簿
+        excel->dynamicCall("Quit()");//关闭excel
+        delete excel;
+        excel=NULL;
+    }
+    ui->progressBar->hide();
 }
 
-void tab_interfere_analysis::on_triple_clicked()
+void tab_interfere_analysis::on_triple_clicked()  //计算C2I3并储存到选择的保存路径
 {
     QString path = ui->triple_path->text();
     if(path.isEmpty())
@@ -170,6 +222,9 @@ void tab_interfere_analysis::on_triple_clicked()
         QMessageBox::information(NULL, tr("Path"), tr("You need to select a file first."));
         //return;
     }
+    path += "/tbC2I3.xlsx";
+    ui->progressBar->show();
+    ui->progressBar->setValue(0);
 
     vector<edge> e;
     vector<triple> res;
@@ -267,5 +322,43 @@ void tab_interfere_analysis::on_triple_clicked()
                    .arg(edge_name[res[i].a[2]]));
         qDebug() << res[i].a[0] << res[i].a[1] << res[i].a[2];
     }
+
+    if(!path.isEmpty())
+    {
+        qDebug() << path;
+        ui->progressBar->setRange(0,res.size()/3+2);
+        QAxObject *excel = new QAxObject(this);
+        excel->setControl("Excel.Application");//连接Excel控件
+        excel->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
+        excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        qDebug() << "settings";
+        ui->progressBar->setValue(1);
+        QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+        workbooks->dynamicCall("Add");//新建一个工作簿
+        QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
+        QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
+        QAxObject *worksheet = worksheets->querySubObject("Item(int)",1);//获取工作表集合的工作表1，即sheet1
+
+        ui->progressBar->setValue(2);
+        add_gird(worksheet,1,1,"A_ID");
+        add_gird(worksheet,1,2,"B_ID");
+        add_gird(worksheet,1,3,"C_ID");
+        for(int i=0;i<res.size();i+=3)
+        {
+            add_gird(worksheet,i/3+2,1,res[i].a[0]);
+            add_gird(worksheet,i/3+2,2,res[i].a[1]);
+            add_gird(worksheet,i/3+2,3,res[i].a[2]);
+            ui->progressBar->setValue(i/3+2);
+        }
+        qDebug() << "wrote";
+
+        workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(path));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+        ui->progressBar->setValue(res.size()/3+2);
+        workbook->dynamicCall("Close()");//关闭工作簿
+        excel->dynamicCall("Quit()");//关闭excel
+        delete excel;
+        excel=NULL;
+    }
+    ui->progressBar->hide();
 
 }
