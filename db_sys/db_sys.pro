@@ -4,8 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 QT += sql
+CONFIG(debug,debug|release){
+LIBS += -lQt5AxContainerd
+LIBS += -lQt5AxBased
+}else{
+LIBS += -lQt5AxContainer
+LIBS += -lQt5AxBase
+}
+
+CONFIG += c++14
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,14 +26,19 @@ SOURCES += main.cpp\
         db_sys.cpp \
     tab_data_io.cpp \
     tab_interfere_analysis.cpp \
-    tab_info_query.cpp
+    tab_info_query.cpp \
+    act_data_io.cpp
 
 HEADERS  += db_sys.h \
     tab_data_io.h \
     tab_interfere_analysis.h \
-    tab_info_query.h
+    tab_info_query.h \
+    inputbuffer.h \
+    act_data_io.h
 
 FORMS    += db_sys.ui \
     tab_data_io.ui \
     tab_interfere_analysis.ui \
     tab_info_query.ui
+
+
