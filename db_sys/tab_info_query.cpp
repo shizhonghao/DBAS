@@ -1,6 +1,7 @@
 #include "tab_info_query.h"
 #include "ui_tab_info_query.h"
 #include <QDebug>
+#include <QSqlQuery>
 
 tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
     QWidget(parent),
@@ -33,12 +34,17 @@ tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
     queryButton->setGeometry(600,30,87,22);
     queryButton->setText(QWidget::tr("搜索"));
 
+    //显示搜索结果的表格
+    displayTable = new QTableWidget(this);
+    displayTable->setGeometry(50,80,700,400);
+
     //初始页面信息
     iniInfo();
 
     //响应各项动作
     connect(mission,SIGNAL(currentIndexChanged(int)),this,SLOT(missionChange(int)));
     connect(queryButton,SIGNAL(clicked(bool)),this,SLOT(ButtonAction()));
+    connect(ComSectorID,SIGNAL(currentIndexChanged(QString)),this,SLOT(comSecNameChange(QString)));
 }
 
 tab_info_query::~tab_info_query()
@@ -68,33 +74,177 @@ void tab_info_query::missionChange(int n)
 void tab_info_query::iniInfo()
 {
     qDebug()<<"iniInfo";
+    QSqlQuery query(db);
+    query.exec("select distinct sector_name from dbo.tbCell");
+    while(query.next())
+    {
+        ComSectorID->addItem(query.value(0).toString());
+    }
+    query.exec(QString("select count(*) from dbo.tbCell where sector_name = '%1'").arg(ComSectorID->currentText()));
+    query.next();
+    int row = query.value(0).toInt();
+    QStringList header;
+    header<<"CITY"<<"SECTOR_ID"<<"SECTOR_NAME"<<"ENODEBID"<<"ENODEB_NAME"<<"EARFCN"<<"PCI"<<"PSS"<<"SSS"<<"TAC"<<"VENDOR"<<"LONGITUDE"<<"LATITUDE"<<"STYLE"<<"AZIMUTH"<<"HEIGHT"<<"ELECTTILT"<<"MECHTILT"<<"TOTLETILT";
+    displayTable->setColumnCount(19);
+    displayTable->setHorizontalHeaderLabels(header);
+    displayTable->setRowCount(row);
+    query.exec(QString("select * from dbo.tbCell where sector_name = '%1'").arg(ComSectorID->currentText()));
+    int i,j;
+    query.next();
+    for(i = 0;i < row;i ++)
+    {
+        for(j = 0;j < 19;j ++)
+        {
+            displayTable->setItem(i,j,new QTableWidgetItem(query.value(j).toString()));
+        }
+        query.next();
+    }
 }
 
 void tab_info_query::QuerytbCell()
 {
     qDebug()<<"tbCell";
+    ComSectorID->show();
+    displayTable->show();
+    ComSectorID->clear();
+    QSqlQuery query(db);
+    query.exec("select distinct sector_name from dbo.tbcell");
+    while(query.next())
+    {
+        ComSectorID->addItem(query.value(0).toString());
+    }
 }
 
 void tab_info_query::QueryeNodeB()
 {
     qDebug()<<"eNodeB";
+    ComSectorID->show();
+    displayTable->show();
+    ComSectorID->clear();
+    QSqlQuery query(db);
+    query.exec("select distinct enodebid from dbo.tbcell");
+    while(query.next())
+    {
+        ComSectorID->addItem(query.value(0).toString());
+    }
 }
 
 void tab_info_query::QueryKPI()
 {
     qDebug()<<"KPI";
+    ComSectorID->hide();
+    displayTable->hide();
 }
 
 void tab_info_query::QueryPRB()
 {
     qDebug()<<"PRB";
+    ComSectorID->hide();
+    displayTable->hide();
 }
 
 void tab_info_query::ButtonAction()
 {
-    qDebug()<<"ButtonAction";
     QString id,name;
     id = LineSectorID->text();
     name = LineSectorName->text();
-    qDebug()<<id<<name;
+    qDebug()<<"ButtonAction"<<id<<name;
+    QSqlQuery query(db);
+    int row = 0;
+    int i,j;
+    if(mission->currentIndex() == 0 || mission->currentIndex() == 1)
+    {
+        displayTable->clearContents();
+        if(mission->currentIndex() == 0)
+        {
+            if(id != NULL && name != NULL)
+            {
+                query.exec(QString("select count(*) from tbCell where sector_id = '%1' and sector_name = '%2'").arg(id).arg(name));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where sector_id = '%1' and sector_name = '%2'").arg(id).arg(name));
+            }
+            else if(id == NULL)
+            {
+                query.exec(QString("select count(*) from tbCell where sector_name = '%1'").arg(name));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where sector_name = '%1'").arg(name));
+            }
+            else
+            {
+                query.exec(QString("select count(*) from tbCell where sector_id = '%1'").arg(id));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where sector_id = '%1'").arg(id));
+            }
+        }
+        else
+        {
+            if(id != NULL && name != NULL)
+            {
+                query.exec(QString("select count(*) from tbCell where enodebid = %1 and enodeb_name = '%2'").arg(id).arg(name));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where enodebid = %1 and enodeb_name = '%2'").arg(id).arg(name));
+            }
+            else if(id == NULL)
+            {
+                query.exec(QString("select count(*) from tbCell where enodeb_name = '%1'").arg(name));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where enodeb_name = '%1'").arg(name));
+            }
+            else
+            {
+                query.exec(QString("select count(*) from tbCell where enodebid = %1").arg(id));
+                query.next();
+                row = query.value(0).toInt();
+                query.exec(QString("select * from tbCell where enodebid = %1").arg(id));
+            }
+        }
+        displayTable->setRowCount(row);
+        i = 0;
+        while(query.next())
+        {
+            for(j = 0;j < 19;j ++)
+            {
+                displayTable->setItem(i,j,new QTableWidgetItem(query.value(j).toString()));
+            }
+            i++;
+        }
+    }
+}
+
+void tab_info_query::comSecNameChange(QString name)
+{
+    qDebug()<<"comSecNameChange"<<name;
+    QSqlQuery query(db);
+    int row = 0;
+    displayTable->clearContents();
+    if(mission->currentIndex() == 0)
+    {
+        query.exec(QString("select count(*) from tbCell where sector_name = '%1'").arg(name));
+        query.next();
+        row = query.value(0).toInt();
+        query.exec(QString("select * from tbCell where sector_name = '%1'").arg(name));
+    }
+    else
+    {
+        query.exec(QString("select count(*) from tbCell where enodebid = '%1'").arg(name));
+        query.next();
+        row = query.value(0).toInt();
+        query.exec(QString("select * from tbCell where enodebid = '%1'").arg(name));
+    }
+    query.next();
+    displayTable->setRowCount(row);
+    int i,j;
+    for(i = 0;i < row;i ++)
+    {
+        for(j = 0;j < 19;j ++)
+        {
+            displayTable->setItem(i,j,new QTableWidgetItem(query.value(j).toString()));
+        }
+        query.next();
+    }
 }
