@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QTableWidget>
 
 namespace Ui {
 class tab_info_query;
@@ -27,6 +28,7 @@ private:
     QLineEdit *LineSectorID;
     QLineEdit *LineSectorName;
     QPushButton *queryButton;
+    QTableWidget *displayTable;
     void iniInfo();
 
 private slots:
@@ -36,6 +38,7 @@ private slots:
     void QueryKPI();
     void QueryPRB();
     void ButtonAction();
+    void comSecNameChange(QString name);
 };
 
 #endif // TAB_INFO_QUERY_H
