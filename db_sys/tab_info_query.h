@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QSqlDatabase>
 #include <QComboBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QTableWidget>
 
 namespace Ui {
 class tab_info_query;
@@ -22,6 +25,11 @@ private:
     QSqlDatabase db;
     QComboBox *mission;
     QComboBox *ComSectorID;
+    QLineEdit *LineSectorID;
+    QLineEdit *LineSectorName;
+    QPushButton *queryButton;
+    QTableWidget *displayTable;
+    void iniInfo();
 
 private slots:
     void missionChange(int n);
@@ -29,6 +37,8 @@ private slots:
     void QueryeNodeB();
     void QueryKPI();
     void QueryPRB();
+    void ButtonAction();
+    void comSecNameChange(QString name);
 };
 
 #endif // TAB_INFO_QUERY_H
