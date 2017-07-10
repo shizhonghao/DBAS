@@ -7,6 +7,9 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QCalendarWidget>
+#include "graph.h"
+#include <QMessageBox>
 
 namespace Ui {
 class tab_info_query;
@@ -29,7 +32,17 @@ private:
     QLineEdit *LineSectorName;
     QPushButton *queryButton;
     QTableWidget *displayTable;
+    QImage *image;
+    graph *graphic;
+    QPushButton *chooseSDate;
+    QPushButton *chooseEDate;
+    QCalendarWidget *calendarS;
+    QCalendarWidget *calendarE;
+    QString Sday;
+    QString Eday;
+    QMessageBox *message;
     void iniInfo();
+    void Paint();
 
 private slots:
     void missionChange(int n);
@@ -39,6 +52,10 @@ private slots:
     void QueryPRB();
     void ButtonAction();
     void comSecNameChange(QString name);
+    void ChoSDate();
+    void ChoEDate();
+    void SDateChange(QDate Ndate);
+    void EDateChange(QDate Ndate);
 };
 
 #endif // TAB_INFO_QUERY_H
