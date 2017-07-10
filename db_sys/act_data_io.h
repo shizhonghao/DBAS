@@ -46,22 +46,6 @@ public:
     void inporttb(tbUnit *[100],int);
 };
 
-class IOThread:public QThread{
-public:
-    act_data_io* myIO;
-    tbUnit *mydata[100];
-    int mylen;
-    IOThread(act_data_io* io,tbUnit *data[100],int len){
-        this->myIO = io;
-        for(int i=0;i<len;i++)
-            this->mydata[i]=data[i];
-        this->mylen=len;
-    }
-
-    void run(){
-        this->myIO->inporttb(this->mydata,this->mylen);
-    }
-};
 
 class READThread:public QThread{
     Q_OBJECT

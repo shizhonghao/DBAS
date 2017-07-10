@@ -53,12 +53,12 @@ QString act_data_io::getEndCol(int cols){
         char a = 'A'+(cols/26-1);
         char b = 'A'+(cols%26-1);
         res = QString(a) + QString(b);
-        qDebug()<<"end Colum"<<res<<a<<b;
+        //qDebug()<<"end Colum"<<res<<a<<b;
     }
     else{
         char b = 'A'+(cols%26-1);
         res = QString(b);
-        qDebug()<<"end Colum"<<res<<b;
+        //qDebug()<<"end Colum"<<res<<b;
     }
     return res;
 }
