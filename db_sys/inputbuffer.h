@@ -4,6 +4,7 @@
 #endif // INPUTBUFFER_H
 #include<QString>
 #include <ActiveQt/QAxObject>
+#include<QDebug>
 
 class tbUnit{
 public:
@@ -184,3 +185,141 @@ private:
     int LteNcEarfcn,LteNcPci;
 };
 
+class tbPRBUnit:public tbUnit{
+public:
+
+    tbPRBUnit(QVariantList allEnvDataList_i,bool &ok){
+        if(allEnvDataList_i.length()!=105)//列长于表不符，为错表
+        {
+            ok = false;
+            return;
+        }
+        this->DataList = allEnvDataList_i;
+        bool test;
+        this->StartTime = allEnvDataList_i[0].toString();
+        ok &= isNotNull(this->StartTime);
+        this->cycle = allEnvDataList_i[1].toString().toInt(&test);
+        ok&=test;
+        //qDebug()<<"test3.2 ="<<ok;
+        this->eNodeBName = allEnvDataList_i[2].toString();
+        ok &= isNotNull(this->eNodeBName);
+        //qDebug()<<"test1 ="<<ok;
+        this->Sector = allEnvDataList_i[3].toString();
+        ok &= isNotNull(this->Sector);
+        //qDebug()<<"test2.1 ="<<ok;
+        this->SECTOR_NAME = allEnvDataList_i[4].toString();
+        ok &= isNotNull(this->SECTOR_NAME);
+        //qDebug()<<"test2.3 ="<<ok;
+
+        for(int i=0;i<100;i++){
+            this->PRB[i] = allEnvDataList_i[i+5].toString().toInt(&test);
+            ok&=test;
+        }
+    }
+
+private:
+    QString StartTime;
+    int cycle;
+    QString eNodeBName,Sector,SECTOR_NAME;
+    int PRB[100];
+};
+
+class tbKPIUnit:public tbUnit{
+public:
+
+    tbKPIUnit(QVariantList allEnvDataList_i,bool &ok){
+        if(allEnvDataList_i.length()!=42)//列长于表不符，为错表
+        {
+            ok = false;
+            return;
+        }
+        this->DataList = allEnvDataList_i;
+        bool test;
+        this->StartTime = allEnvDataList_i[0].toString();
+        ok &= isNotNull(this->StartTime);
+        this->cycle = allEnvDataList_i[1].toString().toInt(&test);
+        ok&=test;
+        //qDebug()<<"testcycle ="<<ok;
+        this->eNodeBName = allEnvDataList_i[2].toString();
+        ok &= isNotNull(this->eNodeBName);
+        //qDebug()<<"testNodeName ="<<ok;
+        this->Sector = allEnvDataList_i[3].toString();
+        ok &= isNotNull(this->Sector);
+        //qDebug()<<"testSector ="<<ok;
+        this->SECTOR_NAME = allEnvDataList_i[4].toString();
+        ok &= isNotNull(this->SECTOR_NAME);
+        //qDebug()<<"testSecName ="<<ok;
+
+        int is_float[11]={7,10,13,14,18,27,28,29,30,31,35};
+        int j=0;
+        QString zero="0";
+        for(int i=0;i<37;i++){
+            if(QString::compare("NIL",allEnvDataList_i[i+5].toString())==0){
+                this->DataList[i+5].setValue(zero);
+                if((i+5)==is_float[j])//浮点数
+                {
+                    j++;
+                }
+                continue;
+            }
+            if((i+5)==is_float[j])//浮点数
+            {
+                allEnvDataList_i[i+5].toString().toFloat(&test);
+                ok&= test;
+                j++;
+            }
+            else{//整数
+                allEnvDataList_i[i+5].toString().toLongLong(&test);
+                ok&=test;
+            }
+            if(ok == false){
+                qDebug()<<allEnvDataList_i[i+5].toString()<<(i+5);
+                break;
+            }
+        }
+    }
+
+private:
+    QString StartTime;
+    int cycle;
+    QString eNodeBName;
+    QString Sector;
+    QString SECTOR_NAME;
+    int RPCreq;
+    int RPCreqInc;
+    float qf;
+    int EARBSuc;
+    int EARBTry;
+    float EARBSucRate;
+    int eNode_ERABRelease;
+    int Sector_ERABRelease;
+    float ERABMiss;
+    float ay;
+    int eNodeB_UEConRelease;
+    int UEConRelease;
+    int UEConSuc;
+    float Miss;
+    long eNodeBSuc1;
+    long eNodeBTry1;
+    long eNodeBSuc2;
+    long eNodeBTry2;
+    long eNodeBSuc3;
+    long eNodeBTry3;
+    long eNodeBSuc4;
+    long eNodeBTry4;
+    float eNBSucRate1;
+    float eNBSucRate2;
+    float syncZsp;
+    float asyncZsp;
+    float switchRate;
+    long PDCPUpdT;
+    long PDCPDownT;
+    long RCreq;
+    float RRCrate;
+    long reBuildeNodeSuc1;
+    long reBuildeNodeSuc2;
+    long reBuildeNodeSuc3;
+    long reBuildeNodeSuc4;
+    long eNBSuc;
+    long eNBTry;
+};
