@@ -4,6 +4,7 @@
 #endif // INPUTBUFFER_H
 #include<QString>
 #include <ActiveQt/QAxObject>
+#include<QDebug>
 
 class tbUnit{
 public:
@@ -238,32 +239,42 @@ public:
         ok &= isNotNull(this->StartTime);
         this->cycle = allEnvDataList_i[1].toString().toInt(&test);
         ok&=test;
-        //qDebug()<<"test3.2 ="<<ok;
+        //qDebug()<<"testcycle ="<<ok;
         this->eNodeBName = allEnvDataList_i[2].toString();
         ok &= isNotNull(this->eNodeBName);
-        //qDebug()<<"test1 ="<<ok;
+        //qDebug()<<"testNodeName ="<<ok;
         this->Sector = allEnvDataList_i[3].toString();
         ok &= isNotNull(this->Sector);
-        //qDebug()<<"test2.1 ="<<ok;
+        //qDebug()<<"testSector ="<<ok;
         this->SECTOR_NAME = allEnvDataList_i[4].toString();
         ok &= isNotNull(this->SECTOR_NAME);
-        //qDebug()<<"test2.3 ="<<ok;
+        //qDebug()<<"testSecName ="<<ok;
 
         int is_float[11]={7,10,13,14,18,27,28,29,30,31,35};
         int j=0;
+        QString zero="0";
         for(int i=0;i<37;i++){
             if(QString::compare("NIL",allEnvDataList_i[i+5].toString())==0){
+                this->DataList[i+5].setValue(zero);
+                if((i+5)==is_float[j])//浮点数
+                {
+                    j++;
+                }
                 continue;
             }
-            if(i==is_float[j])//浮点数
+            if((i+5)==is_float[j])//浮点数
             {
                 allEnvDataList_i[i+5].toString().toFloat(&test);
                 ok&= test;
                 j++;
             }
             else{//整数
-                allEnvDataList_i[i+5].toString().toInt(&test);
+                allEnvDataList_i[i+5].toString().toLongLong(&test);
                 ok&=test;
+            }
+            if(ok == false){
+                qDebug()<<allEnvDataList_i[i+5].toString()<<(i+5);
+                break;
             }
         }
     }
@@ -288,27 +299,27 @@ private:
     int UEConRelease;
     int UEConSuc;
     float Miss;
-    int eNodeBSuc1;
-    int eNodeBTry1;
-    int eNodeBSuc2;
-    int eNodeBTry2;
-    int eNodeBSuc3;
-    int eNodeBTry3;
-    int eNodeBSuc4;
-    int eNodeBTry4;
+    long eNodeBSuc1;
+    long eNodeBTry1;
+    long eNodeBSuc2;
+    long eNodeBTry2;
+    long eNodeBSuc3;
+    long eNodeBTry3;
+    long eNodeBSuc4;
+    long eNodeBTry4;
     float eNBSucRate1;
     float eNBSucRate2;
     float syncZsp;
     float asyncZsp;
     float switchRate;
-    int PDCPUpdT;
-    int PDCPDownT;
-    int RCreq;
+    long PDCPUpdT;
+    long PDCPDownT;
+    long RCreq;
     float RRCrate;
-    int reBuildeNodeSuc1;
-    int reBuildeNodeSuc2;
-    int reBuildeNodeSuc3;
-    int reBuildeNodeSuc4;
-    int eNBSuc;
-    int eNBTry;
+    long reBuildeNodeSuc1;
+    long reBuildeNodeSuc2;
+    long reBuildeNodeSuc3;
+    long reBuildeNodeSuc4;
+    long eNBSuc;
+    long eNBTry;
 };

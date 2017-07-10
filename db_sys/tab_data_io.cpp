@@ -9,9 +9,20 @@ tab_data_IO::tab_data_IO(QSqlDatabase db,QWidget *parent) :
 {
     ui->setupUi(this);
     this->db = db;
-    this->excell = new QAxObject("Excel.Application");
-    this->excell->setProperty("Visible",false);
-    ui->progressBar->setValue(0);
+    this->excell= new QAxObject(this);
+    this->excell->setControl("Excel.Application");//连接Excel控件
+    this->excell->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
+    this->excell->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    QSqlQuery query(db);
+    query.exec("SELECT name FROM [DBSA].[dbo].sysobjects WHERE (xtype = 'U')");
+    while(query.next())
+    {
+        ui->tableSelect->addItem(query.value(0).toString());
+    }
+    this->cntEX = new QTimer(this);
+    connect(cntEX,SIGNAL(timeout()),this,SLOT(changeExText()));
+    this->cntIN = new QTimer(this);
+    connect(cntIN,SIGNAL(timeout()),this,SLOT(changeProsBar()));
 }
 
 tab_data_IO::~tab_data_IO()
@@ -23,48 +34,82 @@ tab_data_IO::~tab_data_IO()
 void tab_data_IO::on_pushButton_clicked()
 {
     this->io_actor = new act_data_cell_io(db);
-    this->io_perform(1);
-}
-
-void callExcel(QString fileName,int type,act_data_io* io_actor,QAxObject *worksheet,int startRow,int endRow,int intRows,int intCols){
-    READThread *readEXCEL = new READThread(fileName,type,io_actor,worksheet,startRow,endRow,intRows,intCols);
-    //connect(readEXCEL,SIGNAL(uiChanged(int,int)),this,SLOT(changeProsBar(int,int)));
-    readEXCEL->start();
-    readEXCEL->wait();
-}
-
-void tab_data_IO::io_perform(int type){
-    this->cntAll = 0;
+    this->buttonDisable();
+    this->cntAll=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
     QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
     qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,1,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
+
+
+QString tab_data_IO::getEndCol(int cols){
+    QString res;
+    if(cols>26){
+        char a = 'A'+(cols/26-1);
+        char b = 'A'+(cols%26-1);
+        res = QString(a) + QString(b);
+        //qDebug()<<"end Colum"<<res<<a<<b;
+    }
+    else{
+        char b = 'A'+(cols%26-1);
+        res = QString(b);
+        //qDebug()<<"end Colum"<<res<<b;
+    }
+    return res;
+}
+
+QVariantList tab_data_IO::readRows(QAxObject *worksheet,int startRow,int &endRow,int Rows,int Colums){
+    // 批量载入数据，这里默认读取B13:C最后
+    endRow = std::min(startRow+9999,Rows);
+    qDebug()<<startRow<<" "<<endRow;
+    QString Range = "A"+QString::number(startRow)+":"+getEndCol(Colums)+QString::number(endRow);
+    QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range);
+    QVariant allEnvDataQVariant = allEnvData->property("Value");
+    QVariantList allEnvDataList = allEnvDataQVariant.toList();
+    return allEnvDataList;
+}
+
+void tab_data_IO::io_perform(int type,QString fileName){
+    this->cntAll = 0;
     if(fileName.length()==0)
         return;
     ui->label->setText("opening file:\n"+fileName+"\nplease wait...");
-    ui->progressBar->setValue(0);
     int intRows,intCols;
     QVariantList allEnvDataList;
-    QAxObject *workbook;
-    QAxObject *workbooks;
     //获取对应excel的sheet1
-    QAxObject *worksheet = this->io_actor->inportExcel(fileName,workbooks,workbook,intRows,intCols);
+    qDebug()<<"toOpenExcel";
+    QAxObject *excel = new QAxObject(this);
+    excel->setControl("Excel.Application");//连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
+    excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    QAxObject *workbooks = excel->querySubObject("WorkBooks");
+    workbooks->dynamicCall("Open (const QString&)",fileName);
+    QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取活动工作簿
+    QAxObject *worksheet = workbook->querySubObject("WorkSheets(int)",1);//获取第一个工作表
+
+    QAxObject * usedrange = worksheet->querySubObject("UsedRange");//获取该sheet的使用范围对象
+    QAxObject * rows = usedrange->querySubObject("Rows");
+    QAxObject * columns = usedrange->querySubObject("Columns");
+    intRows = rows->property("Count").toInt();
+    intCols = columns->property("Count").toInt();
     qDebug() << "xls行数:"<<intRows;
     qDebug() << "xls列数:"<<intCols;
     ui->label->setText(ui->label->text()+"\nrow Num: "+QString::number(intRows)+"\tcol Num: "+QString::number(intCols)+"\nBegining");
     int startRow = 2,endRow;
-    ui->progressBar->setRange(2,intRows);
-    //FILE* fp = std::fopen("D:\\tbCell.txt","w");
+    this->excelRows = intRows;
+
     int cntAll = 0;
-    int lenDiv10=intRows/10;
-    int lenSeg=0;
-    tbUnit *DataBuffer[50];
+    tbUnit *DataBuffer[100];
 
     while(startRow<intRows){
-        //callExcel(fileName,type,this->io_actor,worksheet,startRow,endRow,intRows,intCols);
-        //READThread *readEXCEL = new READThread(fileName,type,io_actor,worksheet,startRow,endRow,intRows,intCols);
-        //connect(readEXCEL,SIGNAL(uiChanged(int,int)),this,SLOT(changeProsBar(int,int)));
-        //readEXCEL->start();
-        //readEXCEL->wait();
-        allEnvDataList = this->io_actor->readRows(worksheet,startRow,endRow,intRows,intCols);
+        qDebug()<<"to read";
+        allEnvDataList = this->readRows(worksheet,startRow,endRow,intRows,intCols);
+        qDebug()<<"read end";
         int cnt = 0;
         int len = allEnvDataList.length();
         for(int i=0; i< len; i++)
@@ -81,53 +126,224 @@ void tab_data_IO::io_perform(int type){
             if(ok==true){
                 //数据检查后没有问题
                 //std::fputs(DataBuffer[cnt]->toString().toStdString().data(),fp);
+                this->cntAll++;
                 cnt ++;
             }
-            if(cnt==50){
-                cntAll += cnt;
-                IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
-                newThread->start();
-                newThread->wait();
+            if(cnt==100){
+                this->io_actor->inporttb(DataBuffer,cnt);
                 cnt = 0;
             }
         }
-        changeProsBar(endRow,cntAll);
-        IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
-        newThread->start();
-        newThread->wait();
-        startRow+=900;
-        //break;
+        qDebug()<<"write end";
+        cntAll += cnt;
+        this->io_actor->inporttb(DataBuffer,cnt);
+        startRow+=10000;
     }
     //std::fclose(fp);
     qDebug()<<"to close";
     workbooks->dynamicCall("Close()");
-    this->io_actor->excell->dynamicCall("Quit()");
-    delete this->io_actor->excell;
-    this->io_actor->excell=NULL;
+    excel->dynamicCall("Quit()");
+    delete excel;
+    excel=NULL;
     qDebug()<<"closed";
 }
 
-void tab_data_IO::changeProsBar(int value,int cnt){
-    ui->progressBar->setValue(value);
-    this->cntAll=cnt;
-    ui->label->setText(ui->label->text()+"\n已导入,total: "+QString::number(this->cntAll)+" rows");
+void tab_data_IO::changeProsBar(){
+    ui->inCntLabel->setText("total: "+QString::number(this->cntAll)+" rows");
 }
 
 
 void tab_data_IO::on_pushButton_2_clicked()
 {
     this->io_actor = new act_data_mro_io(db);
-    this->io_perform(2);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,2,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
 }
 
 void tab_data_IO::on_pushButton_3_clicked()
 {
     this->io_actor = new act_data_prb_io(db);
-    this->io_perform(3);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,3,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
+
+void  tab_data_IO::buttonDisable(){
+    ui->pushButton->setEnabled(false);
+    ui->pushButton_2->setEnabled(false);
+    ui->pushButton_3->setEnabled(false);
+    ui->pushButton_4->setEnabled(false);
+}
+
+void  tab_data_IO::buttonEnable(){
+    ui->pushButton->setEnabled(true);
+    ui->pushButton_2->setEnabled(true);
+    ui->pushButton_3->setEnabled(true);
+    ui->pushButton_4->setEnabled(true);
 }
 
 void tab_data_IO::on_pushButton_4_clicked()
 {
     this->io_actor = new act_data_kpi_io(db);
-    this->io_perform(4);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,4,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
+
+void tab_data_IO::on_file_path_clicked()
+{
+    QFileDialog *file = new QFileDialog(this);
+    file->setFileMode(QFileDialog::Directory);
+    file->setWindowTitle(tr("Open Image"));
+    file->setDirectory(".");
+    //file->setFilter(tr("Image Files(*.jpg *.png)"));
+    if(file->exec() == QDialog::Accepted) {
+            this->exPortPath = file->selectedFiles()[0];
+            ui->targetPath->setText(this->exPortPath+ ui->tableSelect->currentText()+".xlsx");
+            QMessageBox::information(NULL, tr("Path"), tr("You selected ") +this->exPortPath);
+    } else {
+            QMessageBox::information(NULL, tr("Path"), tr("You didn't select any files."));
+    }
+}
+
+void tab_data_IO::on_tableSelect_currentIndexChanged(const QString &arg1)
+{
+    QString filePath = ui->targetPath->text();
+    if(filePath.length()==0)
+        return;
+    ui->targetPath->setText(this->exPortPath+ arg1+".xlsx");
+}
+
+void tab_data_IO::runEXport(){
+    QAxObject *excel = new QAxObject(this);
+    excel->setControl("Excel.Application");//连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
+    excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    qDebug() << "settings";
+    QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+    workbooks->dynamicCall("Add");//新建一个工作簿
+    QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
+    QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
+    QAxObject *worksheet = worksheets->querySubObject("Item(int)",1);//获取工作表集合的工作表1，即sheet1
+
+    QVariant var;
+    QVariant temp = QVariant(QVariantList());
+    QVariantList line;
+    QVariantList record;
+    QSqlQuery query(db);
+    query.exec("SELECT name FROM syscolumns where id=object_id('"+ ui->tableSelect->currentText()+"')");
+    int cols = 0;
+    while(query.next())
+    {
+        line<<query.value(0).toString();
+        cols ++;
+    }
+    qDebug()<<line;
+    temp = line;
+    record << temp;
+    temp = record;
+    var = temp;
+    QString rangStr = "A"+QString::number(1)+":"+this->io_actor->getEndCol(cols);
+    rangStr += QString::number(1);
+    QAxObject* range = worksheet->querySubObject("Range(const QString&)", rangStr);
+    range->setProperty("Value", var);
+    delete range;
+    qDebug() << "wrote colums";
+
+
+    this->EXendrows = 2;
+    int startrows = 2;
+    query.exec("SELECT * FROM "+ ui->tableSelect->currentText());
+    temp.clear();
+    record.clear();
+    while(query.next())
+    {
+        line.clear();
+        for(int i=0;i<cols;i++)
+            line<<query.value(i).toString();
+        temp = line;
+        record << temp;
+        this->EXendrows++;
+        if(this->EXendrows-startrows==5000){
+            temp = record;
+            var = temp;
+            rangStr = "A"+QString::number(startrows)+":"+this->io_actor->getEndCol(cols);
+            rangStr += QString::number(this->EXendrows-1);
+            range = worksheet->querySubObject("Range(const QString&)", rangStr);
+            range->setProperty("Value", var);
+            delete range;
+            qDebug()<<this->EXendrows;
+            startrows = this->EXendrows;
+            temp.clear();
+            record.clear();
+        }
+    }
+    if(startrows!=this->EXendrows){
+        temp = record;
+        var = temp;
+        rangStr = "A"+QString::number(startrows)+":"+this->io_actor->getEndCol(cols);
+        rangStr += QString::number(this->EXendrows-1);
+        range = worksheet->querySubObject("Range(const QString&)", rangStr);
+        range->setProperty("Value", var);
+        delete range;
+    }
+    ui->completedCnt->setText("已导出:  "+QString::number(this->EXendrows)+"行,Finish");
+    //ui->completedCnt->setText(QString::number(endrows));
+    qDebug() << "wrote";
+    workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(ui->targetPath->text()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+    workbook->dynamicCall("Close()");//关闭工作簿
+    excel->dynamicCall("Quit()");//关闭excel
+    delete excel;
+    excel=NULL;
+}
+
+void tab_data_IO::on_confirmButton_clicked()
+{
+    QString filePath = ui->targetPath->text();
+    if(filePath.length()==0){
+        QMessageBox::information(NULL, tr("Error"), tr("路径不应为空 "));
+        return;
+    }
+
+    this->cntEX->start(1500);
+
+    EXThread *newEx = new EXThread(this);
+    connect(newEx,SIGNAL(stopTimer()),this,SLOT(stopTimerEx()));
+    newEx->start();
+}
+
+void tab_data_IO::stopTimerEx(){
+    this->cntEX->stop();
+    this->changeExText();
+}
+void tab_data_IO::stopTimerIn(){
+    this->cntIN->stop();
+    this->changeProsBar();
+    this->buttonEnable();
+}
+void tab_data_IO::changeExText(){
+    qDebug()<<"in";
+    ui->completedCnt->setText("current export:  "+QString::number(this->EXendrows)+" rows");
 }
