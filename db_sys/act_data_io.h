@@ -9,7 +9,7 @@
 class act_data_io
 {
 public:
-    virtual void  inporttb(tbUnit *[50],int){};
+    virtual void  inporttb(tbUnit *[100],int){};
     QAxObject * inportExcel(QString,QAxObject* &,QAxObject* &,int&,int&);
     QVariantList readRows(QAxObject*,int,int&,int,int);
     QString getEndCol(int);
@@ -22,36 +22,36 @@ class act_data_cell_io:public act_data_io
 {
 public:
     act_data_cell_io(QSqlDatabase);
-    void inporttb(tbUnit *[50],int);
+    void inporttb(tbUnit *[100],int);
 };
 
 class act_data_mro_io:public act_data_io
 {
 public:
     act_data_mro_io(QSqlDatabase);
-    void inporttb(tbUnit *[50],int);
+    void inporttb(tbUnit *[100],int);
 };
 
 class act_data_prb_io:public act_data_io
 {
 public:
     act_data_prb_io(QSqlDatabase);
-    void inporttb(tbUnit *[50],int);
+    void inporttb(tbUnit *[100],int);
 };
 
 class act_data_kpi_io:public act_data_io
 {
 public:
     act_data_kpi_io(QSqlDatabase);
-    void inporttb(tbUnit *[50],int);
+    void inporttb(tbUnit *[100],int);
 };
 
 class IOThread:public QThread{
 public:
     act_data_io* myIO;
-    tbUnit *mydata[50];
+    tbUnit *mydata[100];
     int mylen;
-    IOThread(act_data_io* io,tbUnit *data[50],int len){
+    IOThread(act_data_io* io,tbUnit *data[100],int len){
         this->myIO = io;
         for(int i=0;i<len;i++)
             this->mydata[i]=data[i];

@@ -74,7 +74,7 @@ QVariantList act_data_io::readRows(QAxObject *worksheet,int startRow,int &endRow
     return allEnvDataList;
 }
 
-void act_data_cell_io::inporttb(tbUnit *buffer[50],int len){
+void act_data_cell_io::inporttb(tbUnit *buffer[100],int len){
     QSqlQuery query(db);
     //query.exec("bulk_insert_on");
     query.prepare("insert into tbCellNew values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,? ,?)");
@@ -91,7 +91,7 @@ void act_data_cell_io::inporttb(tbUnit *buffer[50],int len){
         qDebug() << query.lastError();
 }
 
-void act_data_mro_io::inporttb(tbUnit *buffer[50],int len){
+void act_data_mro_io::inporttb(tbUnit *buffer[100],int len){
     QSqlQuery query(db);
     //query.exec("bulk_insert_on");
     query.prepare("insert into tbMRODataNew values (?, ?, ?, ?, ?, ?, ?)");
@@ -112,7 +112,7 @@ void act_data_mro_io::inporttb(tbUnit *buffer[50],int len){
              }
 }
 
-void act_data_prb_io::inporttb(tbUnit *buffer[50],int len){
+void act_data_prb_io::inporttb(tbUnit *buffer[100],int len){
     QSqlQuery query(db);
     //query.exec("bulk_insert_on");
     QString sql = "insert into tbPRB values (";
@@ -138,7 +138,7 @@ void act_data_prb_io::inporttb(tbUnit *buffer[50],int len){
         return;
              }
 }
-void act_data_kpi_io::inporttb(tbUnit *buffer[50],int len){
+void act_data_kpi_io::inporttb(tbUnit *buffer[100],int len){
      QSqlQuery query(db);
      //query.exec("bulk_insert_on");
      QString sql = "insert into tbKPI values (";
@@ -177,8 +177,9 @@ void READThread::run(){
     allEnvDataList=this->myIO->readRows(worksheet,startRow,endRow,intRows,intCols);
     int cnt = 0;
     int len = allEnvDataList.length();
-    tbUnit *DataBuffer[50];
+    tbUnit *DataBuffer[100];
     int cntAll = 0;
+    qDebug()<<"start insert";
     for(int i=0; i< len; i++)
     {
         QVariantList allEnvDataList_i =  allEnvDataList[i].toList();
@@ -195,17 +196,17 @@ void READThread::run(){
             //std::fputs(DataBuffer[cnt]->toString().toStdString().data(),fp);
             cnt ++;
         }
-        if(cnt==50){
+        if(cnt==100){
             cntAll += cnt;
+            this->myIO->inporttb(DataBuffer,cnt);
+            /*
             IOThread *newThread = new IOThread(this->myIO,DataBuffer,cnt);
             newThread->start();
-            newThread->wait();
+            newThread->wait();*/
             cnt = 0;
         }
     }
-    IOThread *newThread = new IOThread(this->myIO,DataBuffer,cnt);
-    newThread->start();
-    newThread->wait();
+    this->myIO->inporttb(DataBuffer,cnt);
     emit this->uiChanged(endRow,cntAll);
     qDebug()<<"to close in thread";
     workbooks->dynamicCall("Close()");

@@ -56,7 +56,7 @@ void tab_data_IO::io_perform(int type){
     int cntAll = 0;
     int lenDiv10=intRows/10;
     int lenSeg=0;
-    tbUnit *DataBuffer[50];
+    tbUnit *DataBuffer[100];
 
     while(startRow<intRows){
         //callExcel(fileName,type,this->io_actor,worksheet,startRow,endRow,intRows,intCols);
@@ -65,6 +65,7 @@ void tab_data_IO::io_perform(int type){
         //readEXCEL->start();
         //readEXCEL->wait();
         allEnvDataList = this->io_actor->readRows(worksheet,startRow,endRow,intRows,intCols);
+        qDebug()<<"read end";
         int cnt = 0;
         int len = allEnvDataList.length();
         for(int i=0; i< len; i++)
@@ -83,22 +84,27 @@ void tab_data_IO::io_perform(int type){
                 //std::fputs(DataBuffer[cnt]->toString().toStdString().data(),fp);
                 cnt ++;
             }
-            if(cnt==50){
+            if(cnt==100){
                 cntAll += cnt;
-                IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
-                newThread->start();
-                newThread->wait();
+                this->io_actor->inporttb(DataBuffer,cnt);
+                //IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
+                //newThread->start();
+                //newThread->wait();
                 cnt = 0;
             }
         }
-        changeProsBar(endRow,cntAll);
-        IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
-        newThread->start();
-        newThread->wait();
+        qDebug()<<"write end";
+        cntAll += cnt;
+        ui->progressBar->setValue(endRow);
+        this->io_actor->inporttb(DataBuffer,cnt);
+        //IOThread *newThread = new IOThread(this->io_actor,DataBuffer,cnt);
+        //newThread->start();
+        //newThread->wait();
         startRow+=900;
         //break;
     }
     //std::fclose(fp);
+    ui->label->setText(ui->label->text()+"\ntotal: "+QString::number(cntAll)+" rows");
     qDebug()<<"to close";
     workbooks->dynamicCall("Close()");
     this->io_actor->excell->dynamicCall("Quit()");
@@ -109,8 +115,8 @@ void tab_data_IO::io_perform(int type){
 
 void tab_data_IO::changeProsBar(int value,int cnt){
     ui->progressBar->setValue(value);
-    this->cntAll=cnt;
-    ui->label->setText(ui->label->text()+"\n已导入,total: "+QString::number(this->cntAll)+" rows");
+    this->cntAll+=cnt;
+    ui->label->setText(ui->label->text()+"\ntotal: "+QString::number(this->cntAll)+" rows");
 }
 
 
