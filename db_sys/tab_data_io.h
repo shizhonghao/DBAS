@@ -29,11 +29,16 @@ private slots:
 
     void on_pushButton_3_clicked();
 
+    void on_pushButton_4_clicked();
+
+    void changeProsBar(int,int);
+
 private:
     act_data_io *io_actor;
     Ui::tab_data_IO *ui;
     QSqlDatabase db;
     QAxObject *excell;
+    int cntAll;
 };
 
 #endif // TAB_DATA_IO_H
