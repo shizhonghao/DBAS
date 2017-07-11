@@ -1,4 +1,4 @@
-#include "tab_data_io.h"
+﻿#include "tab_data_io.h"
 #include "ui_tab_data_io.h"
 #include <QFileDialog>
 #include <algorithm>
@@ -14,6 +14,7 @@ tab_data_IO::tab_data_IO(QSqlDatabase db,QWidget *parent) :
     this->excell->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
     this->excell->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     QSqlQuery query(db);
+    ui->progressBar->setValue(0);
     query.exec("SELECT name FROM [DBSA].[dbo].sysobjects WHERE (xtype = 'U')");
     while(query.next())
     {
@@ -38,6 +39,7 @@ void tab_data_IO::on_pushButton_clicked()
     this->cntAll=0;
     this->excelRows=0;
     this->setRange = false;
+    ui->progressBar->setRange(2,5504);
     this->cntIN->start(1500);
     QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
     qDebug()<<fileName;
@@ -103,7 +105,7 @@ void tab_data_IO::io_perform(int type,QString fileName){
     int startRow = 2,endRow;
     this->excelRows = intRows;
 
-    int cntAll = 0;
+    this->cntInsert = 0;
     tbUnit *DataBuffer[100];
 
     while(startRow<intRows){
@@ -122,11 +124,10 @@ void tab_data_IO::io_perform(int type,QString fileName){
                 case 3:DataBuffer[cnt] = new tbPRBUnit(allEnvDataList_i,ok);break;
                 case 4:DataBuffer[cnt] = new tbKPIUnit(allEnvDataList_i,ok);break;
             }
-
+            this->cntAll++;
             if(ok==true){
                 //数据检查后没有问题
-                //std::fputs(DataBuffer[cnt]->toString().toStdString().data(),fp);
-                this->cntAll++;
+                this->cntInsert++;
                 cnt ++;
             }
             if(cnt==100){
@@ -135,11 +136,9 @@ void tab_data_IO::io_perform(int type,QString fileName){
             }
         }
         qDebug()<<"write end";
-        cntAll += cnt;
         this->io_actor->inporttb(DataBuffer,cnt);
         startRow+=10000;
     }
-    //std::fclose(fp);
     qDebug()<<"to close";
     workbooks->dynamicCall("Close()");
     excel->dynamicCall("Quit()");
@@ -149,12 +148,14 @@ void tab_data_IO::io_perform(int type,QString fileName){
 }
 
 void tab_data_IO::changeProsBar(){
+    ui->progressBar->setValue(this->cntAll);
     ui->inCntLabel->setText("total: "+QString::number(this->cntAll)+" rows");
 }
 
 
 void tab_data_IO::on_pushButton_2_clicked()
 {
+    ui->progressBar->setRange(2,875603);
     this->io_actor = new act_data_mro_io(db);
     this->buttonDisable();
     this->cntAll=0;
@@ -170,6 +171,7 @@ void tab_data_IO::on_pushButton_2_clicked()
 
 void tab_data_IO::on_pushButton_3_clicked()
 {
+    ui->progressBar->setRange(2,93025);
     this->io_actor = new act_data_prb_io(db);
     this->buttonDisable();
     this->cntAll=0;
@@ -199,6 +201,7 @@ void  tab_data_IO::buttonEnable(){
 
 void tab_data_IO::on_pushButton_4_clicked()
 {
+    ui->progressBar->setRange(2,971);
     this->io_actor = new act_data_kpi_io(db);
     this->buttonDisable();
     this->cntAll=0;
@@ -337,11 +340,15 @@ void tab_data_IO::on_confirmButton_clicked()
 void tab_data_IO::stopTimerEx(){
     this->cntEX->stop();
     this->changeExText();
+    QMessageBox::information(NULL, tr("Finish"), tr("Export Finished!"));
+    ui->progressBar->setValue(0);
 }
 void tab_data_IO::stopTimerIn(){
     this->cntIN->stop();
     this->changeProsBar();
     this->buttonEnable();
+    QMessageBox::information(NULL, tr("Finish"), tr("Inport Finished!"));
+    ui->progressBar->setValue(0);
 }
 void tab_data_IO::changeExText(){
     qDebug()<<"in";
