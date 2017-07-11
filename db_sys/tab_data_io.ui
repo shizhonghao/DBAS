@@ -16,14 +16,19 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>130</y>
-     <width>511</width>
-     <height>111</height>
+     <x>90</x>
+     <y>140</y>
+     <width>551</width>
+     <height>41</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
    <property name="text">
-    <string>this is the port widget</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton">
@@ -81,34 +86,50 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>130</x>
+     <x>90</x>
      <y>40</y>
-     <width>381</width>
+     <width>561</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border: 1px solid black;</string>
+   </property>
    <property name="text">
-    <string>导入数据表</string>
+    <string>  导入数据表</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>280</y>
-     <width>431</width>
+     <x>90</x>
+     <y>284</y>
+     <width>561</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>13</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border: 1px solid black;</string>
+   </property>
    <property name="text">
-    <string>导出数据表</string>
+    <string>  导出数据表</string>
    </property>
   </widget>
   <widget class="QComboBox" name="tableSelect">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>320</y>
+     <x>90</x>
+     <y>330</y>
      <width>181</width>
      <height>22</height>
     </rect>
@@ -117,9 +138,9 @@
   <widget class="QPushButton" name="file_path">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>320</y>
-     <width>31</width>
+     <x>290</x>
+     <y>330</y>
+     <width>21</width>
      <height>21</height>
     </rect>
    </property>
@@ -130,11 +151,16 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>365</y>
-     <width>61</width>
+     <x>90</x>
+     <y>364</y>
+     <width>81</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>导出到：</string>
@@ -143,11 +169,19 @@
   <widget class="QLabel" name="targetPath">
    <property name="geometry">
     <rect>
-     <x>170</x>
-     <y>365</y>
-     <width>531</width>
-     <height>41</height>
+     <x>190</x>
+     <y>369</y>
+     <width>461</width>
+     <height>31</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border: 1px solid black;</string>
    </property>
    <property name="text">
     <string/>
@@ -156,11 +190,16 @@
   <widget class="QPushButton" name="confirmButton">
    <property name="geometry">
     <rect>
-     <x>200</x>
-     <y>410</y>
+     <x>90</x>
+     <y>414</y>
      <width>161</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>确认导出</string>
@@ -169,10 +208,10 @@
   <widget class="QLabel" name="completedCnt">
    <property name="geometry">
     <rect>
-     <x>410</x>
+     <x>296</x>
      <y>420</y>
-     <width>261</width>
-     <height>16</height>
+     <width>351</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -182,27 +221,46 @@
   <widget class="QLabel" name="inCntLabel">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>240</y>
-     <width>141</width>
+     <x>90</x>
+     <y>190</y>
+     <width>271</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">border: 1px solid blue;</string>
+   </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string/>
    </property>
   </widget>
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>240</y>
-     <width>361</width>
+     <x>370</x>
+     <y>194</y>
+     <width>281</width>
      <height>23</height>
     </rect>
    </property>
    <property name="value">
     <number>24</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="line">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>240</y>
+     <width>800</width>
+     <height>1</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(0, 0, 0);</string>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

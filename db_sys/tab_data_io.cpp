@@ -48,6 +48,56 @@ void tab_data_IO::on_pushButton_clicked()
     readThread->start();
 }
 
+void tab_data_IO::on_pushButton_2_clicked()
+{
+    ui->progressBar->setRange(2,875603);
+    this->io_actor = new act_data_mro_io(db);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->cntInsert=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,2,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
+
+void tab_data_IO::on_pushButton_3_clicked()
+{
+    ui->progressBar->setRange(2,93025);
+    this->io_actor = new act_data_prb_io(db);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->cntInsert=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,3,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
+
+void tab_data_IO::on_pushButton_4_clicked()
+{
+    ui->progressBar->setRange(2,971);
+    this->io_actor = new act_data_kpi_io(db);
+    this->buttonDisable();
+    this->cntAll=0;
+    this->cntInsert=0;
+    this->excelRows=0;
+    this->setRange = false;
+    this->cntIN->start(1500);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
+    qDebug()<<fileName;
+    IOThread *readThread = new IOThread(this,4,fileName);
+    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
+    readThread->start();
+}
 
 QString tab_data_IO::getEndCol(int cols){
     QString res;
@@ -80,7 +130,7 @@ void tab_data_IO::io_perform(int type,QString fileName){
     this->cntAll = 0;
     if(fileName.length()==0)
         return;
-    ui->label->setText("opening file:\n"+fileName+"\nplease wait...");
+    ui->label->setText(QObject::tr("Opening Excel,please wait...") );
     int intRows,intCols;
     QVariantList allEnvDataList;
     //获取对应excel的sheet1
@@ -101,7 +151,7 @@ void tab_data_IO::io_perform(int type,QString fileName){
     intCols = columns->property("Count").toInt();
     qDebug() << "xls行数:"<<intRows;
     qDebug() << "xls列数:"<<intCols;
-    ui->label->setText(ui->label->text()+"\nrow Num: "+QString::number(intRows)+"\tcol Num: "+QString::number(intCols)+"\nBegining");
+    ui->label->setText("the file has rows: "+QString::number(intRows)+"\tcols : "+QString::number(intCols));
     int startRow = 2,endRow;
     this->excelRows = intRows;
 
@@ -149,40 +199,7 @@ void tab_data_IO::io_perform(int type,QString fileName){
 
 void tab_data_IO::changeProsBar(){
     ui->progressBar->setValue(this->cntAll);
-    ui->inCntLabel->setText("total: "+QString::number(this->cntAll)+" rows");
-}
-
-
-void tab_data_IO::on_pushButton_2_clicked()
-{
-    ui->progressBar->setRange(2,875603);
-    this->io_actor = new act_data_mro_io(db);
-    this->buttonDisable();
-    this->cntAll=0;
-    this->excelRows=0;
-    this->setRange = false;
-    this->cntIN->start(1500);
-    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
-    qDebug()<<fileName;
-    IOThread *readThread = new IOThread(this,2,fileName);
-    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
-    readThread->start();
-}
-
-void tab_data_IO::on_pushButton_3_clicked()
-{
-    ui->progressBar->setRange(2,93025);
-    this->io_actor = new act_data_prb_io(db);
-    this->buttonDisable();
-    this->cntAll=0;
-    this->excelRows=0;
-    this->setRange = false;
-    this->cntIN->start(1500);
-    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
-    qDebug()<<fileName;
-    IOThread *readThread = new IOThread(this,3,fileName);
-    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
-    readThread->start();
+    ui->inCntLabel->setText("All:"+QString::number(this->cntAll)+"/ Suc:"+QString::number(this->cntInsert));
 }
 
 void  tab_data_IO::buttonDisable(){
@@ -190,6 +207,7 @@ void  tab_data_IO::buttonDisable(){
     ui->pushButton_2->setEnabled(false);
     ui->pushButton_3->setEnabled(false);
     ui->pushButton_4->setEnabled(false);
+    ui->confirmButton->setEnabled(false);
 }
 
 void  tab_data_IO::buttonEnable(){
@@ -197,22 +215,7 @@ void  tab_data_IO::buttonEnable(){
     ui->pushButton_2->setEnabled(true);
     ui->pushButton_3->setEnabled(true);
     ui->pushButton_4->setEnabled(true);
-}
-
-void tab_data_IO::on_pushButton_4_clicked()
-{
-    ui->progressBar->setRange(2,971);
-    this->io_actor = new act_data_kpi_io(db);
-    this->buttonDisable();
-    this->cntAll=0;
-    this->excelRows=0;
-    this->setRange = false;
-    this->cntIN->start(1500);
-    QString fileName = QFileDialog::getOpenFileName(this, tr("open file"), " ",  tr("Allfile(*.*);;所有Excel文件(*.xls;*.xlsx);;CSV文件(*.csv);"));
-    qDebug()<<fileName;
-    IOThread *readThread = new IOThread(this,4,fileName);
-    connect(readThread,SIGNAL(stopTimer()),this,SLOT(stopTimerIn()));
-    readThread->start();
+    ui->confirmButton->setEnabled(true);
 }
 
 void tab_data_IO::on_file_path_clicked()
@@ -221,7 +224,6 @@ void tab_data_IO::on_file_path_clicked()
     file->setFileMode(QFileDialog::Directory);
     file->setWindowTitle(tr("Open Image"));
     file->setDirectory(".");
-    //file->setFilter(tr("Image Files(*.jpg *.png)"));
     if(file->exec() == QDialog::Accepted) {
             this->exPortPath = file->selectedFiles()[0];
             ui->targetPath->setText(this->exPortPath+ ui->tableSelect->currentText()+".xlsx");
@@ -289,7 +291,7 @@ void tab_data_IO::runEXport(){
         temp = line;
         record << temp;
         this->EXendrows++;
-        if(this->EXendrows-startrows==5000){
+        if(this->EXendrows-startrows==10000){
             temp = record;
             var = temp;
             rangStr = "A"+QString::number(startrows)+":"+this->io_actor->getEndCol(cols);
@@ -312,8 +314,7 @@ void tab_data_IO::runEXport(){
         range->setProperty("Value", var);
         delete range;
     }
-    ui->completedCnt->setText("已导出:  "+QString::number(this->EXendrows)+"行,Finish");
-    //ui->completedCnt->setText(QString::number(endrows));
+    ui->completedCnt->setText("current export:"+QString::number(this->EXendrows)+"Finish");
     qDebug() << "wrote";
     workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(ui->targetPath->text()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
     workbook->dynamicCall("Close()");//关闭工作簿
@@ -326,12 +327,12 @@ void tab_data_IO::on_confirmButton_clicked()
 {
     QString filePath = ui->targetPath->text();
     if(filePath.length()==0){
-        QMessageBox::information(NULL, tr("Error"), tr("路径不应为空 "));
+        QMessageBox::information(NULL, tr("Error"), tr("Path shouldn't be empty! "));
         return;
     }
 
     this->cntEX->start(1500);
-
+    this->buttonDisable();
     EXThread *newEx = new EXThread(this);
     connect(newEx,SIGNAL(stopTimer()),this,SLOT(stopTimerEx()));
     newEx->start();
@@ -339,9 +340,10 @@ void tab_data_IO::on_confirmButton_clicked()
 
 void tab_data_IO::stopTimerEx(){
     this->cntEX->stop();
-    this->changeExText();
+    this->buttonEnable();
     QMessageBox::information(NULL, tr("Finish"), tr("Export Finished!"));
     ui->progressBar->setValue(0);
+    ui->completedCnt->setText("Export Finish! "+QString::number(this->EXendrows)+" rows");
 }
 void tab_data_IO::stopTimerIn(){
     this->cntIN->stop();
@@ -352,5 +354,5 @@ void tab_data_IO::stopTimerIn(){
 }
 void tab_data_IO::changeExText(){
     qDebug()<<"in";
-    ui->completedCnt->setText("current export:  "+QString::number(this->EXendrows)+" rows");
+    ui->completedCnt->setText("current export: "+QString::number(this->EXendrows)+" rows");
 }
