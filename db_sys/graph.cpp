@@ -100,6 +100,7 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
 {
     qDebug()<<"PRBGraph";
     int days = Eday.mid(3,2).toInt() - Sday.mid(3,2).toInt() + 1;
+    int i;
     qDebug()<<days;
     Paint();
     QPainter painter(image);
@@ -107,22 +108,36 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
     penDegree.setColor(Qt::black);
     penDegree.setWidth(2);
     painter.setPen(penDegree);
+    float dx = 615.0 / (24 * days - 1);
     //x轴刻度
-    for(int i = 0;i < 24;i ++)
+    for(i = 0;i < days*4;i ++)
     {
-        painter.drawLine(pointx+5+620/23*i,pointy,pointx+5+620/23*i,pointy+4);
-        painter.drawText(pointx+5+620/23*i,pointy+15,QString("%1").arg(i));
+        painter.drawLine(pointx+5+dx*i*6,pointy,pointx+5+dx*i*6,pointy+4);
+        painter.drawText(pointx+dx*i*6,pointy+20,QString("%1").arg(i*6));
     }
+    painter.drawLine(680,pointy,680,pointy+4);
+    painter.drawText(675,pointy+20,QString("%1").arg(days*24-1));
     //y轴刻度
-    for(int i = 1;i <= 10; i++)
+    for(i = 1;i <= 10; i++)
     {
         painter.drawLine(pointx,pointy - i*height/10,pointx - 4,pointy - i*height/10);
         painter.drawText(pointx-50,pointy-(i-0.15)*height/10,QString::number((float)height*i*28/3600-124));
     }
-    QPen pen,penPoint;
-    pen.setColor(Qt::black);
-    pen.setWidth(2);
-    penPoint.setColor(Qt::blue);
+    QPen pen[6];
+    QPen penPoint;
+    pen[0].setColor(Qt::blue);
+    pen[0].setWidth(2);
+    pen[1].setColor(Qt::red);
+    pen[1].setWidth(2);
+    pen[2].setColor(Qt::green);
+    pen[2].setWidth(2);
+    pen[3].setColor(Qt::gray);
+    pen[3].setWidth(2);
+    pen[4].setColor(Qt::cyan);
+    pen[4].setWidth(2);
+    pen[5].setColor(Qt::black);
+    pen[5].setWidth(2);
+    penPoint.setColor(Qt::black);
     penPoint.setWidth(5);
     if(name != NULL)
     {
@@ -130,12 +145,13 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
         QSqlQuery queryN(db);
         QSqlQuery queryR(db);
         float x,y,fx,fy;
-        float dx = 620 / (24 * days - 1);
         QString sql;
         QString EnodeName;
         sql = QString("select distinct 小区名 from tbPRBnew where 网元名称 = '%1'").arg(name);
         queryN.exec(sql);
         //qDebug()<<sql;
+        i = 0;
+        int pointcount = 0;
         while(queryN.next())
         {
             EnodeName = queryN.value(0).toString();
@@ -144,6 +160,7 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
             //qDebug()<<sql;
             x = 65;
             fx = -1;
+            pointcount= 0;
             while(queryR.next())
             {
                 qDebug()<<queryR.value(0).toString()<<queryR.value(1).toInt();
@@ -151,15 +168,20 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
                 if(fx != -1)
                 {
                     x = fx + dx;
-                    painter.setPen(pen);
+                    painter.setPen(pen[i]);
                     painter.drawLine(fx,fy,x,y);
                 }
                 painter.setPen(penPoint);
                 painter.drawPoint(x,y);
                 fx = x;
                 fy = y;
+                pointcount++;
             }
+            i++;
+            qDebug()<<"x"<<x;
+            qDebug()<<pointx+5+dx*(days*24-1);
         }
+        qDebug()<<pointcount;
     }
     update();
 }

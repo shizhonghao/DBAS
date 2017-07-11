@@ -22,24 +22,36 @@ tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
     message->hide();
 
     //添加用于选择查询类型的下拉菜单
+    labelMission = new QLabel(this);
+    labelMission->setGeometry(60,5,87,22);
+    labelMission->setText("模式选择");
     mission = new QComboBox(this);
-    mission->setGeometry(100,30,87,22);
+    mission->setGeometry(50,30,150,22);
     mission->addItem(QWidget::tr("小区配置信息查询"));
     mission->addItem(QWidget::tr("基站eNodeB信息查询"));
     mission->addItem(QWidget::tr("KPI指标信息查询"));
     mission->addItem(QWidget::tr("PRB信息统计&查询"));
 
     //小区名称选择的下拉菜单
+    labelComSec = new QLabel(this);
+    labelComSec->setGeometry(50,60,97,22);
+    labelComSec->setText("选择小区名称");
     ComSectorID = new QComboBox(this);
-    ComSectorID->setGeometry(200,30,87,22);
+    ComSectorID->setGeometry(50,90,300,22);
 
     //小区编号选择的输入框
+    labelId = new QLabel(this);
+    labelId->setGeometry(280,30,60,22);
+    labelId->setText("小区编号");
     LineSectorID = new QLineEdit(this);
-    LineSectorID->setGeometry(300,30,87,22);
+    LineSectorID->setGeometry(340,30,87,22);
 
     //小区名称选择的输入框
+    labelName = new QLabel(this);
+    labelName->setGeometry(437,30,63,22);
+    labelName->setText("小区名称");
     LineSectorName = new QLineEdit(this);
-    LineSectorName->setGeometry(400,30,87,22);
+    LineSectorName->setGeometry(500,30,87,22);
 
     //利用用户输入信息开始查找的按钮
     queryButton = new QPushButton(this);
@@ -49,7 +61,7 @@ tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
     //日期选择按钮
     chooseSDate = new QPushButton(this);
     chooseSDate->setGeometry(700,5,95,22);
-    chooseSDate->setText(QWidget::tr("选择开始日期"));
+    chooseSDate->setText(QWidget::tr("选择起始日期"));
     chooseSDate->hide();
     chooseEDate = new QPushButton(this);
     chooseEDate->setGeometry(700,30,95,22);
@@ -58,7 +70,8 @@ tab_info_query::tab_info_query(QSqlDatabase db,QWidget *parent) :
 
     //显示搜索结果的表格
     displayTable = new QTableWidget(this);
-    displayTable->setGeometry(50,80,700,400);
+    displayTable->setGeometry(50,120,700,300);
+    displayTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     //绘制折线图和柱状图的画布/**/
     graphic = new graph(db,this);
@@ -138,14 +151,21 @@ void tab_info_query::iniInfo()
         }
         query.next();
     }
+    displayTable->resizeColumnsToContents();
 }
 
 void tab_info_query::QuerytbCell()
 {
     qDebug()<<"tbCell";
+    labelComSec->show();
+    labelComSec->clear();
+    labelComSec->setText("选择小区名称");
     ComSectorID->show();
     displayTable->show();
+    labelId->show();
     LineSectorID->show();
+    labelName->clear();
+    labelName->setText("小区名称");
     graphic->hide();
     chooseSDate->hide();
     chooseEDate->hide();
@@ -161,9 +181,17 @@ void tab_info_query::QuerytbCell()
 void tab_info_query::QueryeNodeB()
 {
     qDebug()<<"eNodeB";
+    labelComSec->show();
+    labelComSec->clear();
+    labelComSec->setText("选择网元ID");
     ComSectorID->show();
     displayTable->show();
+    labelId->show();
+    labelId->clear();
+    labelId->setText("网元编号");
     LineSectorID->show();
+    labelName->clear();
+    labelName->setText("网元名称");
     chooseSDate->hide();
     chooseEDate->hide();
     graphic->hide();
@@ -179,9 +207,13 @@ void tab_info_query::QueryeNodeB()
 void tab_info_query::QueryKPI()
 {
     qDebug()<<"KPI";
+    labelComSec->hide();
     ComSectorID->hide();
     displayTable->hide();
+    labelId->hide();
     LineSectorID->hide();
+    labelName->clear();
+    labelName->setText("网元名称");
     chooseSDate->hide();
     chooseEDate->hide();
     graphic->show();
@@ -196,9 +228,13 @@ void tab_info_query::QueryPRB()
     QString sql;
     chooseSDate->show();
     chooseEDate->show();
+    labelComSec->hide();
     ComSectorID->hide();
     displayTable->hide();
+    labelId->hide();
     LineSectorID->hide();
+    labelName->clear();
+    labelName->setText("网元名称");
     graphic->show();
     graphic->PRBGraph("",Sday,Eday);
 
@@ -216,41 +252,36 @@ void tab_info_query::QueryPRB()
     QVariantList line;
     QVariantList record;
     int lineCount = 1;
-    line << "起始时间" << "网元名称" << "小区名" << "PRB60";
+    line << "起始时间" << "周期" << "网元名称" << "小区名";
+    for(int i = 0;i < 100;i++)
+    {
+        line<<"PRB"+QString(i);
+    }
     temp = line;
     record << temp;
     QSqlQuery query(db);
-    query.exec("delete from tbPRBnew");
-    QSqlQuery queryI(db);
-    int date,time;
-    for(date = 17;date < 20;date++)
+    query.exec("execute PR_tbPRBnew");
+    //sql = QString("select 网元名称,小区名,sum(PRB60)/4 as PRB60 from tbPRB where 起始时间 between '07/%1/2016 %2:00:00' and '07/%1/2016 %2:59:00'group by 网元名称,小区名").arg(date).arg(time);
+    sql = "select * from tbPRBnew";
+    //qDebug()<<sql;
+    query.exec(sql);
+    while(query.next())
     {
-        for(time = 0;time < 24;time++)
+        line.clear();
+        for(int i = 0;i < 104;i ++)
         {
-            sql = QString("select 网元名称,小区名,sum(PRB60)/4 as PRB60 from tbPRB where 起始时间 between '07/%1/2016 %2:00:00' and '07/%1/2016 %2:59:00'group by 网元名称,小区名").arg(date).arg(time);
-            //qDebug()<<sql;
-            query.exec(sql);
-            while(query.next())
-            {
-                line.clear();
-                line << QString("07/%1/2016 %2:00:00").arg(date).arg(time);
-                line << query.value(0).toString();
-                line << query.value(1).toString();
-                line << query.value(2).toString();
-                temp = line;
-                record << temp;
-                sql = QString("insert into tbPRBnew(起始时间,网元名称,小区名,PRB60) values('07/%1/2016 %2:00:00','%3','%4',%5)").arg(date).arg(time).arg(query.value(0).toString()).arg(query.value(1).toString()).arg(query.value(2).toString());
-                queryI.exec(sql);
-                //qDebug()<<sql;
-                lineCount ++;
-            }
+            line<<query.value(i).toString();
         }
+        temp = line;
+        record << temp;
+        lineCount ++;
+
     }
     temp = record;
     var = temp;
 
-    QString rangStr = "A1:D";
-    rangStr += QString::number(lineCount+1);
+    QString rangStr = "A1:DA";
+    rangStr += QString::number(lineCount);
     QAxObject* range = worksheet->querySubObject("Range(const QString&)", rangStr);
     range->setProperty("Value", var);
     delete range;
