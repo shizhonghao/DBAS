@@ -60,6 +60,14 @@ struct triple
         }
         return this->a[0] < x.a[0];
     }
+    bool operator !=(const triple x)const
+    {
+        if(this->a[0]==x.a[0] && this->a[1]==x.a[1] && this->a[2]==x.a[2])
+        {
+            return false;
+        }
+        return true;
+    }
 };
 
 tab_interfere_analysis::tab_interfere_analysis(QSqlDatabase db,QWidget *parent) :
@@ -351,16 +359,50 @@ void tab_interfere_analysis::on_triple_clicked()  //计算C2I3并储存到选择
     }
     sort(res.begin(),res.end());
 
+    QVariant var;
+    QVariant temp = QVariant(QVariantList());
+    QVariantList line;
+    QVariantList record;
+    line << "A_ID" << "B_ID" << "C_ID";
+    temp = line;
+    record << temp;
+    line.clear();
+    line << edge_name[res[0].a[0]];
+    line << edge_name[res[0].a[1]];
+    line << edge_name[res[0].a[2]];
+    temp = line;
+    record << temp;
+
     qDebug() << "res:";
-    query.exec("delete from dbo.tbC2I3");
-    for(int i=0;i<res.size();i+=3)
+    for(int i=0;i<res.size();i++)
     {
-        query.exec(QString("insert into dbo.tbC2I3 values('%1','%2','%3')")
-                   .arg(edge_name[res[i].a[0]])
-                   .arg(edge_name[res[i].a[1]])
-                   .arg(edge_name[res[i].a[2]]));
-        qDebug() << edge_name[res[i].a[0]] << edge_name[res[i].a[1]] << edge_name[res[i].a[2]];
+        //qDebug() << res[i].a[0] << res[i].a[1] << res[i].a[2];
     }
+    query.exec("delete from dbo.tbC2I3");
+    query.exec(QString("insert into dbo.tbC2I3 values('%1','%2','%3')")
+               .arg(edge_name[res[0].a[0]])
+               .arg(edge_name[res[0].a[1]])
+               .arg(edge_name[res[0].a[2]]));
+    qDebug() << edge_name[res[0].a[0]] << edge_name[res[0].a[1]] << edge_name[res[0].a[2]];
+    for(int i=1;i<res.size();i++)
+    {
+        if(res[i]!=res[i-1])
+        {
+            //qDebug() << (res[i]!=res[i-1]);
+            query.exec(QString("insert into dbo.tbC2I3 values('%1','%2','%3')")
+                       .arg(edge_name[res[i].a[0]])
+                       .arg(edge_name[res[i].a[1]])
+                       .arg(edge_name[res[i].a[2]]));
+            qDebug() << edge_name[res[i].a[0]] << edge_name[res[i].a[1]] << edge_name[res[i].a[2]];
+            line.clear();
+            line << edge_name[res[i].a[0]];
+            line << edge_name[res[i].a[1]];
+            line << edge_name[res[i].a[2]];
+            temp = line;
+            record << temp;
+        }
+    }
+    int file_size = record.count();
 
     ui->progressBar->setValue(val+=(10000-val)/5);
     if(!path.isEmpty())
@@ -378,28 +420,14 @@ void tab_interfere_analysis::on_triple_clicked()  //计算C2I3并储存到选择
         QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
         QAxObject *worksheet = worksheets->querySubObject("Item(int)",1);//获取工作表集合的工作表1，即sheet1
 
-        QVariant var;
-        QVariant temp = QVariant(QVariantList());
-        QVariantList line;
-        QVariantList record;
-        line << "A_ID" << "B_ID" << "C_ID";
-        temp = line;
-        record << temp;
-        for(int i=0;i<res.size();i++)
-        {
-            line.clear();
-            line << res[i].a[0];
-            line << res[i].a[1];
-            line << res[i].a[2];
-            temp = line;
-            record << temp;
-        }
+
         temp = record;
         var = temp;
         ui->progressBar->setValue(val+=(10000-val)/2);
 
         QString rangStr = "A1:C";
-        rangStr += QString::number(res.size()+1);
+        qDebug() << file_size;
+        rangStr += QString::number(file_size);
         QAxObject* range = worksheet->querySubObject("Range(const QString&)", rangStr);
         range->setProperty("Value", var);
         delete range;
