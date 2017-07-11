@@ -10,6 +10,7 @@
 #include <QCalendarWidget>
 #include "graph.h"
 #include <QMessageBox>
+#include <QLabel>
 
 namespace Ui {
 class tab_info_query;
@@ -41,6 +42,10 @@ private:
     QString Sday;
     QString Eday;
     QMessageBox *message;
+    QLabel *labelMission;
+    QLabel *labelComSec;
+    QLabel *labelId;
+    QLabel *labelName;
     void iniInfo();
     void Paint();
 
