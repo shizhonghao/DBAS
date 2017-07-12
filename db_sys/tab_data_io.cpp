@@ -37,6 +37,7 @@ void tab_data_IO::on_pushButton_clicked()
     this->io_actor = new act_data_cell_io(db);
     this->buttonDisable();
     this->cntAll=0;
+    this->cntInsert = 0;
     this->excelRows=0;
     this->setRange = false;
     ui->progressBar->setRange(2,5504);
@@ -258,7 +259,7 @@ void tab_data_IO::runEXport(){
     QVariantList line;
     QVariantList record;
     QSqlQuery query(db);
-    query.exec("SELECT name FROM syscolumns where id=object_id('"+ ui->tableSelect->currentText()+"')");
+    query.exec("SELECT name FROM syscolumns where id=object_id('"+ ui->tableSelect->currentText()+"') order by colid");
     int cols = 0;
     while(query.next())
     {
