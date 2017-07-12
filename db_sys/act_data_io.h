@@ -1,4 +1,4 @@
-#ifndef ACT_DATA_IO_H
+﻿#ifndef ACT_DATA_IO_H
 #define ACT_DATA_IO_H
 
 #include <QSqlDatabase>
@@ -10,10 +10,7 @@ class act_data_io
 {
 public:
     virtual void  inporttb(tbUnit *[100],int){};
-    QAxObject * inportExcel(QString,QAxObject* &,QAxObject* &,int&,int&);
-    QVariantList readRows(QAxObject*,int,int&,int,int);
     QString getEndCol(int);
-
     QSqlDatabase db;
     QAxObject *excell;
 };
@@ -46,30 +43,4 @@ public:
     void inporttb(tbUnit *[100],int);
 };
 
-
-class READThread:public QThread{
-    Q_OBJECT
-signals:
-    void uiChanged(int,int);
-
-public:
-    int type;
-    act_data_io* myIO;
-    QAxObject *myworksheet;
-    QVariantList allEnvDataList;
-    int startRow,endRow,intRows,intCols;
-    QString fileName;
-    READThread(QString fName,int t,act_data_io* io,QAxObject *worksheet,int start,int end,int Rows,int Cols){
-        this->myIO = io;
-        myworksheet = worksheet;
-        startRow = start;
-        endRow = end;
-        intRows = Rows;
-        intCols = Cols;
-        type = t;
-        fileName = fName;
-    }
-
-    void run();
-};
 #endif // ACT_DATA_IO_H

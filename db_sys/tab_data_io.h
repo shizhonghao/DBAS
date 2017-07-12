@@ -1,4 +1,4 @@
-#ifndef TAB_DATA_IO_H
+﻿#ifndef TAB_DATA_IO_H
 #define TAB_DATA_IO_H
 #include "act_data_io.h"
 #include <QWidget>
@@ -57,6 +57,7 @@ private:
     QSqlDatabase db;
     QAxObject *excell;
     int cntAll;
+    int cntInsert;
     int excelRows;
     bool setRange;
 

@@ -1,4 +1,4 @@
-#ifndef INPUTBUFFER_H
+﻿#ifndef INPUTBUFFER_H
 #define INPUTBUFFER_H
 
 #endif // INPUTBUFFER_H
