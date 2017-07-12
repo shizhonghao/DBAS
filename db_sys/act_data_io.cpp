@@ -50,7 +50,7 @@ QString act_data_io::getEndCol(int cols){
 void act_data_cell_io::inporttb(tbUnit *buffer[100],int len){
     QSqlQuery query(db);
     //query.exec("bulk_insert_on");
-    query.prepare("insert into tbCellNew values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,? ,?)");
+    query.prepare("insert into tbCell values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,? ,? ,? ,?)");
     QVariantList List[19];
     for(int i=0;i<19;i++){
         for(int j=0;j<len;j++){
@@ -67,7 +67,7 @@ void act_data_cell_io::inporttb(tbUnit *buffer[100],int len){
 void act_data_mro_io::inporttb(tbUnit *buffer[100],int len){
     QSqlQuery query(db);
     //query.exec("bulk_insert_on");
-    query.prepare("insert into tbMRODataNew values (?, ?, ?, ?, ?, ?, ?)");
+    query.prepare("insert into tbMROData values (?, ?, ?, ?, ?, ?, ?)");
     QVariantList List[7];
     for(int i=0;i<7;i++){
         for(int j=0;j<len;j++){
