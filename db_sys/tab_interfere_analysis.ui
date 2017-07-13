@@ -13,26 +13,13 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>54</width>
-     <height>12</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>analysis</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="C2I">
    <property name="geometry">
     <rect>
      <x>130</x>
      <y>100</y>
      <width>141</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -43,9 +30,9 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>140</y>
+     <y>160</y>
      <width>141</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -79,7 +66,7 @@
    <property name="geometry">
     <rect>
      <x>300</x>
-     <y>140</y>
+     <y>160</y>
      <width>301</width>
      <height>21</height>
     </rect>
@@ -89,7 +76,7 @@
    <property name="geometry">
     <rect>
      <x>580</x>
-     <y>140</y>
+     <y>160</y>
      <width>21</width>
      <height>23</height>
     </rect>
