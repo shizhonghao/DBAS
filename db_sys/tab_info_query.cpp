@@ -1,4 +1,4 @@
-﻿#include "tab_info_query.h"
+#include "tab_info_query.h"
 #include "ui_tab_info_query.h"
 #include <QDebug>
 #include <QSqlQuery>
@@ -255,7 +255,7 @@ void tab_info_query::QueryPRB()
     line << "起始时间" << "周期" << "网元名称" << "小区名";
     for(int i = 0;i < 100;i++)
     {
-        line<<"PRB"+QString(i);
+        line<<"PRB"+QString::number(i);
     }
     temp = line;
     record << temp;
@@ -363,6 +363,7 @@ void tab_info_query::ButtonAction()
             }
             i++;
         }
+        displayTable->resizeColumnsToContents();
     }
     else
     {
@@ -408,6 +409,7 @@ void tab_info_query::comSecNameChange(QString name)
         }
         query.next();
     }
+    displayTable->resizeColumnsToContents();
 }
 
 void tab_info_query::ChoSDate()
