@@ -1,4 +1,4 @@
-#include "tab_info_query.h"
+﻿#include "tab_info_query.h"
 #include "ui_tab_info_query.h"
 #include <QDebug>
 #include <QSqlQuery>
