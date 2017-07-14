@@ -2,13 +2,13 @@ USE [DBSA]
 GO
 
 ALTER TRIGGER [dbo].[tbMROBulkInser] 
-   ON  [dbo].[tbMRODataNew]
+   ON  [dbo].[tbMROData]
    INSTEAD OF INSERT	
 AS 
 BEGIN
 	--找出导入数据中需要Update操作的全部元组，并暂时存放在#UpdateTemp
 	select A.* into #UpdateTemp
-	from inserted AS A,[dbo].[tbMRODataNew] As B
+	from inserted AS A,[dbo].[tbMROData] As B
 	where A.[TimeStamp] = B.[TimeStamp]
 		and A.[ServingSector]=B.[ServingSector]
 		and A.[InterferingSector] = B.[InterferingSector]
@@ -28,7 +28,7 @@ BEGIN
 		and A.[LteNcPci] = B.[LteNcPci])
 	where B.[TimeStamp] is null
 
-	DELETE FROM [dbo].[tbMRODataNew]
+	DELETE FROM [dbo].[tbMROData]
 	where [TimeStamp] = (
 				select B.[TimeStamp]
 				from #UpdateTemp AS B
@@ -49,11 +49,11 @@ BEGIN
 				and [InterferingSector] = B.[InterferingSector])
 
 	--将新的内容插入cell表
-	INSERT INTO [dbo].[tbMRODataNew]
+	INSERT INTO [dbo].[tbMROData]
 	SELECT * FROM #UpdateTemp
 
 	--将新的内容插入cell表
-	INSERT INTO [dbo].[tbMRODataNew]
+	INSERT INTO [dbo].[tbMROData]
 	SELECT * FROM #InsertTemp
 	
 END

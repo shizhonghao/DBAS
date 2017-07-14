@@ -1,7 +1,7 @@
 create procedure bulk_insert_on
 AS
 BEGIN
-	bulk insert tbCellNew
+	bulk insert tbCell
 	from 'f:\in.txt'
 	with
 	(fieldterminator=',', 

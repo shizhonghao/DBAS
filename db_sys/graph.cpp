@@ -100,6 +100,33 @@ void graph::PRBGraph(QString name, QString Sday, QString Eday)
 {
     qDebug()<<"PRBGraph";
     int days = Eday.mid(3,2).toInt() - Sday.mid(3,2).toInt() + 1;
+    if(Eday.mid(6,4).toInt() < Sday.mid(6,4).toInt())
+    {
+        days = 1;
+    }
+    else if(Eday.mid(6,4).toInt() > Sday.mid(6,4).toInt())
+    {
+        days = 3;
+    }
+    else
+    {
+        if(Eday.mid(0,2).toInt() < Sday.mid(0,2).toInt())
+        {
+            days = 1;
+        }
+        else if(Eday.mid(0,2).toInt() > Sday.mid(0,2).toInt())
+        {
+            days = 3;
+        }
+    }
+    if(days > 3)
+    {
+        days = 3;
+    }
+    if(days <= 0)
+    {
+        days = 1;
+    }
     int i;
     qDebug()<<days;
     Paint();
